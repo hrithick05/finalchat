@@ -16,7 +16,8 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.get("/messages/users");
       set({ users: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      const errorMessage = error?.response?.data?.message || "Failed to load users. Is the server running?";
+      toast.error(errorMessage);
     } finally {
       set({ isUsersLoading: false });
     }
@@ -28,7 +29,8 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.get(`/messages/${userId}`);
       set({ messages: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      const errorMessage = error?.response?.data?.message || "Failed to load messages. Is the server running?";
+      toast.error(errorMessage);
     } finally {
       set({ isMessagesLoading: false });
     }
@@ -39,7 +41,8 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
       set({ messages: [...messages, res.data] });
     } catch (error) {
-      toast.error(error.response.data.message);
+      const errorMessage = error?.response?.data?.message || "Failed to send message. Is the server running?";
+      toast.error(errorMessage);
     }
   },
 
@@ -48,7 +51,13 @@ export const useChatStore = create((set, get) => ({
     if (!selectedUser) return;
 
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
 
+    // Remove existing listeners to avoid duplicates
+    socket.off("newMessage");
+    socket.off("messageImageUpdated");
+
+    // Listen for new messages
     socket.on("newMessage", (newMessage) => {
       const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
       if (!isMessageSentFromSelectedUser) return;
@@ -57,11 +66,27 @@ export const useChatStore = create((set, get) => ({
         messages: [...get().messages, newMessage],
       });
     });
+
+    // Handle image uploads completed in background
+    socket.on("messageImageUpdated", (data) => {
+      const { messageId, imageUrl } = data;
+      console.log("Image updated:", messageId, imageUrl);
+      
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg._id === messageId 
+            ? { ...msg, image: imageUrl } 
+            : msg
+        ),
+      }));
+    });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
     socket.off("newMessage");
+    socket.off("messageImageUpdated");
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),
