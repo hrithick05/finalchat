@@ -11,10 +11,3 @@ axiosInstance.interceptors.request.use((config) => {
   if (token) config.headers["x-auth-token"] = token;
   return config;
 });
-
-// Save token from response headers
-axiosInstance.interceptors.response.use((response) => {
-  const token = response.headers["x-auth-token"];
-  if (token) localStorage.setItem("jwt-token", token);
-  return response;
-});
