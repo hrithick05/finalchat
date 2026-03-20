@@ -21,7 +21,14 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174", "https://finalchat-lked.vercel.app", "https://finalchat-7zx7.onrender.com", "https://finalchat-ui.onrender.com"],
+    origin: (origin, callback) => {
+      const allowedOrigins = ["https://finalchat-lked.vercel.app", "https://finalchat-7zx7.onrender.com", "https://finalchat-ui.onrender.com"];
+      if (!origin || origin.startsWith("http://localhost") || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
