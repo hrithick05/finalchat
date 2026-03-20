@@ -30,6 +30,7 @@ app.use(
       }
     },
     credentials: true,
+    exposedHeaders: ["x-auth-token"],
   })
 );
 
