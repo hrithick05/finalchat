@@ -7,7 +7,15 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: (origin, callback) => {
+      const allowedOrigins = ["https://finalchat-lked.vercel.app", "https://finalchat-7zx7.onrender.com", "https://finalchat-ui.onrender.com"];
+      if (!origin || origin.startsWith("http://localhost") || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
+    credentials: true,
   },
 });
 
