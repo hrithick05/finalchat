@@ -77,6 +77,7 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");
+      localStorage.removeItem("jwt-token");
       set({ authUser: null, isDatabaseError: false });
       toast.success("Logged out successfully");
       get().disconnectSocket();

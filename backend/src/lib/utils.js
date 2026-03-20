@@ -13,5 +13,8 @@ export const generateToken = (userId, res) => {
     secure: isProduction,
   });
 
+  // Also return token in response for header-based auth fallback
+  res.setHeader("x-auth-token", token);
+
   return token;
 };

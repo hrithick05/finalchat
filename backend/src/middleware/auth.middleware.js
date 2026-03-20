@@ -3,7 +3,11 @@ import User from "../models/user.model.js";
 
 export const protectRoute = async (req, res, next) => {
   try {
-    const token = req.cookies.jwt;
+    // Try cookie first, then Authorization header, then x-auth-token header
+    const token =
+      req.cookies.jwt ||
+      req.headers["authorization"]?.split(" ")[1] ||
+      req.headers["x-auth-token"];
 
     if (!token) {
       return res.status(401).json({ message: "Unauthorized - No Token Provided" });
